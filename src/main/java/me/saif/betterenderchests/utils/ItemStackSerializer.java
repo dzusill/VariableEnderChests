@@ -75,56 +75,77 @@ public class ItemStackSerializer {
     }
 
     public static ItemStack[] deserializeNBTBytes(String str) {
+        NBTContainer comp;
         try {
             ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(str));
-
-            NBTContainer comp = new NBTContainer(NBTReflectionUtil.readNBT(inputStream));
-
-            ItemStack[] rebuild;
-            if (!comp.hasTag("size")) {
-                rebuild = null;
-            } else {
-                rebuild = new ItemStack[comp.getInteger("size")];
-
-                for(int i = 0; i < rebuild.length; ++i) {
-                    rebuild[i] = new ItemStack(Material.AIR);
-                }
-
-                if (!comp.hasTag("items")) {
-                    return rebuild;
-                } else {
-                    NBTCompoundList list = comp.getCompoundList("items");
-                    Iterator<ReadWriteNBT> var3 = list.iterator();
-
-                    while(var3.hasNext()) {
-                        ReadWriteNBT lcomp = var3.next();
-                        if (lcomp instanceof NBTCompound) {
-                            int slot = lcomp.getInteger("Slot");
-
-                            if (lcomp.hasTag("Count") && MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_20_R4)) {
-                                lcomp = DataFixerUtil.fixUpItemData(lcomp, 3700, DataFixerUtil.getCurrentVersion());
-                            }
-
-                            rebuild[slot] = NBT.itemStackFromNBT(lcomp);
-                        }
-                    }
-
-                    return rebuild;
-                }
-            }
-
-            inputStream.close();
-            return rebuild;
-        } catch (Exception e) {
-            return new ItemStack[0];
+            comp = new NBTContainer(NBTReflectionUtil.readNBT(inputStream));
+        } catch (Exception | LinkageError e) {
+            throw new ItemDeserializationException("Stored enderchest data could not be read", e);
         }
+
+        if (!comp.hasTag("size"))
+            throw new ItemDeserializationException("Stored enderchest data has no size tag");
+
+        ItemStack[] rebuild = new ItemStack[comp.getInteger("size")];
+
+        for (int i = 0; i < rebuild.length; ++i) {
+            rebuild[i] = new ItemStack(Material.AIR);
+        }
+
+        if (!comp.hasTag("items"))
+            return rebuild;
+
+        // A single unreadable item must never be silently dropped: the chest is saved
+        // again later and the item would be gone for good. Collect every failure and
+        // refuse to hand out a partial chest.
+        int total = 0;
+        int failed = 0;
+        Throwable firstCause = null;
+        StringBuilder failedSlots = new StringBuilder();
+
+        for (ReadWriteNBT lcomp : comp.getCompoundList("items")) {
+            total++;
+            int slot = -1;
+            try {
+                slot = lcomp.getInteger("Slot");
+
+                if (lcomp.hasTag("Count") && MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_20_R4)) {
+                    lcomp = DataFixerUtil.fixUpItemData(lcomp, 3700, DataFixerUtil.getCurrentVersion());
+                }
+
+                ItemStack item = NBT.itemStackFromNBT(lcomp);
+                if (item == null)
+                    throw new IllegalStateException("item could not be parsed from its stored data");
+
+                rebuild[slot] = item;
+            } catch (Exception | LinkageError e) {
+                failed++;
+                if (firstCause == null)
+                    firstCause = e;
+                if (failedSlots.length() > 0)
+                    failedSlots.append(", ");
+                failedSlots.append(slot);
+            }
+        }
+
+        if (failed > 0) {
+            throw new ItemDeserializationException(failed + " of " + total + " stored items could not be read (slots: "
+                    + failedSlots + ")", firstCause);
+        }
+
+        return rebuild;
     }
 
     public static ItemStack[] deserializeJson(String str) {
-        ItemStack[] stacks = NBT.itemStackArrayFromNBT(NBT.parseNBT(str));
+        ItemStack[] stacks;
+        try {
+            stacks = NBT.itemStackArrayFromNBT(NBT.parseNBT(str));
+        } catch (Exception | LinkageError e) {
+            throw new ItemDeserializationException("Stored enderchest data could not be read", e);
+        }
 
         if (stacks == null)
-            return new ItemStack[0];
+            throw new ItemDeserializationException("Stored enderchest data could not be parsed into items");
 
         return stacks;
     }
@@ -142,8 +163,8 @@ public class ItemStackSerializer {
 
             dataInput.close();
             return items;
-        } catch (Exception e) {
-            return new ItemStack[0];
+        } catch (Exception | LinkageError e) {
+            throw new ItemDeserializationException("Stored enderchest data could not be read", e);
         }
     }
 

@@ -39,6 +39,7 @@ public class EnderChest implements InventoryHolder {
     private final Map<Integer, String> inventoryNames = new HashMap<>();
     private final String retrievalName;
     private int lastNumRows = 6;
+    private boolean loadFailed = false;
 
     protected EnderChest(UUID owner, String name, ItemStack[] contents) {
         this.UUID = owner;
@@ -64,6 +65,19 @@ public class EnderChest implements InventoryHolder {
     protected EnderChest(UUID owner, String name, ItemStack[] contents, int lastNumRows) {
         this(owner, name, contents);
         this.setRows(lastNumRows);
+    }
+
+    protected EnderChest(UUID owner, String name, EnderChestSnapshot snapshot) {
+        this(owner, name, snapshot.getContents(), snapshot.getRows());
+        this.loadFailed = snapshot.isLoadFailed();
+    }
+
+    /**
+     * True if the stored data of this chest could not be read. Such a chest is empty in memory,
+     * cannot be opened and is never saved, so the stored data stays untouched.
+     */
+    public boolean isLoadFailed() {
+        return loadFailed;
     }
 
     public void setRows(int rows) {
@@ -112,12 +126,15 @@ public class EnderChest implements InventoryHolder {
         return this.inventory;
     }
 
+    //explicitly clearing or replacing the contents is an intentional overwrite, so the chest becomes saveable again
     public void clearContents() {
+        this.loadFailed = false;
         this.contents = new ItemStack[54];
         this.populateInventory();
     }
 
     public void setContents(ItemStack[] contents) {
+        this.loadFailed = false;
         this.contents = Arrays.copyOf(contents, 54);
         this.populateInventory();
     }

@@ -106,7 +106,7 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
                 } else {
                     this.getPlugin().getLogger().info("Loaded enderchest for " + player.getName());
                     this.uuidEnderChestMap.put(player.getUniqueId(),
-                            new EnderChest(player.getUniqueId(), player.getName(), snapshot.getContents(), snapshot.getRows()));
+                            new EnderChest(player.getUniqueId(), player.getName(), snapshot));
                 }
 
                 //if player has vanilla chest open, close it and open their VEC
@@ -162,7 +162,7 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
             return null;
         }
 
-        return new EnderChest(uuid, name, enderChestSnapshot.getContents(), enderChestSnapshot.getRows());
+        return new EnderChest(uuid, name, enderChestSnapshot);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -213,6 +213,11 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
 
                 if (enderChest == null) {
                     this.getPlugin().getLogger().severe("Enderchest for online player " + player.getName() + " could not be found.");
+                    return;
+                }
+
+                if (enderChest.isLoadFailed()) {
+                    this.getPlugin().getMessenger().sendMessage(player, MessageKey.ENDERCHEST_LOAD_FAILED);
                     return;
                 }
 
@@ -288,7 +293,7 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
             if (snapshot == null) {
                 enderChest = createNew(player);
             } else {
-                enderChest = new EnderChest(snapshot.getUuid(), snapshot.getName(), snapshot.getContents(), snapshot.getRows());
+                enderChest = new EnderChest(snapshot.getUuid(), snapshot.getName(), snapshot);
             }
 
             this.uuidEnderChestMap.put(player.getUniqueId(), enderChest);
@@ -305,6 +310,11 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
     }
 
     public void openEnderChest(EnderChest chest, Player player) {
+        //the stored data could not be read, opening an empty chest would let the owner overwrite it
+        if (chest.isLoadFailed()) {
+            this.getPlugin().getMessenger().sendMessage(player, MessageKey.ENDERCHEST_LOAD_FAILED);
+            return;
+        }
         chest.openInventory(player);
     }
 
@@ -317,6 +327,11 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
     //returns whether there are items and if the inventory was opened.
     public boolean openRetriever(EnderChest chest, Player player, int rows) {
         chest.setRows(rows);
+        if (chest.isLoadFailed()) {
+            this.getPlugin().getMessenger().sendMessage(player, MessageKey.ENDERCHEST_LOAD_FAILED);
+            return false;
+        }
+
         Inventory inventory = chest.getRetriever().getInventory();
 
         if (!inventory.isEmpty()) {
@@ -358,7 +373,7 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
         FoliaScheduler.runAsync(this.getPlugin(), () -> {
             EnderChestSnapshot snapshot = this.dataManager.loadEnderChest(name);
 
-            EnderChest enderChest = snapshot == null ? null : new EnderChest(snapshot.getUuid(), snapshot.getName(), snapshot.getContents(), snapshot.getRows());
+            EnderChest enderChest = snapshot == null ? null : new EnderChest(snapshot.getUuid(), snapshot.getName(), snapshot);
             FoliaScheduler.runGlobal(this.getPlugin(), () -> {
                 this.nameCallbackMap.remove(mcName);
                 if (enderChest != null) {
@@ -385,7 +400,7 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
         FoliaScheduler.runAsync(this.getPlugin(), () -> {
             EnderChestSnapshot snapshot = this.dataManager.loadEnderChest(uuid);
 
-            EnderChest enderChest = snapshot == null ? null : new EnderChest(snapshot.getUuid(), snapshot.getName(), snapshot.getContents(), snapshot.getRows());
+            EnderChest enderChest = snapshot == null ? null : new EnderChest(snapshot.getUuid(), snapshot.getName(), snapshot);
             FoliaScheduler.runGlobal(this.getPlugin(), () -> {
                 this.uuidCallbackMap.remove(uuid);
                 this.uuidEnderChestMap.put(uuid, enderChest);

@@ -11,12 +11,26 @@ public class EnderChestSnapshot {
     private final ItemStack[] contents;
     private final String name;
     private final UUID uuid;
+    private final boolean loadFailed;
 
     public EnderChestSnapshot(UUID uuid, String name, ItemStack[] contents, int rows) {
+        this(uuid, name, contents, rows, false);
+    }
+
+    private EnderChestSnapshot(UUID uuid, String name, ItemStack[] contents, int rows, boolean loadFailed) {
         this.uuid = uuid;
         this.name = name;
         this.contents = contents.length == 54 ? contents : Arrays.copyOf(contents, 54);
         this.rows = rows;
+        this.loadFailed = loadFailed;
+    }
+
+    /**
+     * Snapshot standing in for a chest whose stored data could not be read. It has no items and
+     * must never be written back, otherwise the unreadable (but intact) data would be overwritten.
+     */
+    public static EnderChestSnapshot loadFailed(UUID uuid, String name, int rows) {
+        return new EnderChestSnapshot(uuid, name, new ItemStack[54], rows, true);
     }
 
     protected EnderChestSnapshot(EnderChest enderChest) {
@@ -24,6 +38,11 @@ public class EnderChestSnapshot {
         this.uuid = enderChest.getUUID();
         this.rows = enderChest.getLastNumRows();
         this.contents = enderChest.getContents();
+        this.loadFailed = enderChest.isLoadFailed();
+    }
+
+    public boolean isLoadFailed() {
+        return loadFailed;
     }
 
     public String getName() {

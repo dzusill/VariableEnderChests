@@ -39,6 +39,8 @@ public enum MessageKey {
     CONVERSION_SUCCESS("internal.converter.conversion-success", "Conversion successfully finished"),
     CONVERSION_FAILURE("internal.converter.conversion-failure", "Conversion failed"),
 
+    ENDERCHEST_LOAD_FAILED("internal.enderchest.load-failed", "&cYour enderchest could not be loaded, so it has been locked to protect your items.",
+            "&cPlease contact an administrator."),
     CLEARED_ENDERCHEST("internal.enderchest.cleared-enderchest", "Cleared the enderchest of <player>"),
     CONFIRM_CLEAR_ENDERCHEST("internal.enderchest.confirm-clear", "Are you sure you wish to clear the enderchest of <player>",
             "Run this command again within <seconds> seconds to confirm"),

@@ -3,12 +3,15 @@ package me.saif.betterenderchests.data;
 import me.saif.betterenderchests.data.database.SQLDatabase;
 import me.saif.betterenderchests.enderchest.EnderChestSnapshot;
 import me.saif.betterenderchests.utils.ItemStackSerializer;
-import org.bukkit.inventory.ItemStack;
 
 import java.sql.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class SQLDataManager implements DataManager {
+
+    private static final Logger LOGGER = Logger.getLogger("VariableEnderChests");
 
     protected final SQLDatabase database;
     private final String dataTableName = "enderchests";
@@ -117,9 +120,23 @@ public abstract class SQLDataManager implements DataManager {
              PreparedStatement statement = connection.prepareStatement(sql)) {
             for (UUID uuid : snapshotMap.keySet()) {
                 EnderChestSnapshot snapshot = snapshotMap.get(uuid);
+
+                //the stored data of this chest could not be read, so it is still intact in the database. Never overwrite it.
+                if (snapshot.isLoadFailed())
+                    continue;
+
+                String contents;
+                try {
+                    contents = ItemStackSerializer.serialize(snapshot.getContents());
+                } catch (Exception | LinkageError e) {
+                    //one chest failing to serialize must not stop everyone else's chest from being saved
+                    LOGGER.log(Level.SEVERE, "Could not serialize the enderchest of " + snapshot.getName() + " (" + uuid + "). It was not saved.", e);
+                    continue;
+                }
+
                 statement.setString(1, uuid.toString());
                 statement.setInt(2, snapshot.getRows());
-                statement.setString(3, ItemStackSerializer.serialize(snapshot.getContents()));
+                statement.setString(3, contents);
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -147,18 +164,27 @@ public abstract class SQLDataManager implements DataManager {
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
-                ItemStack[] items = ItemStackSerializer.deserialize(resultSet.getString("CONTENTS"));
                 int rows = resultSet.getInt("ROWS");
                 UUID uuid = UUID.fromString(resultSet.getString("UUID"));
                 String name = resultSet.getString("NAME");
-                EnderChestSnapshot snapshot = new EnderChestSnapshot(uuid, name, items, rows);
-                resultMap.put(uuid, snapshot);
+                resultMap.put(uuid, readSnapshot(uuid, name, rows, resultSet.getString("CONTENTS")));
             }
 
             return resultMap;
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    //Unreadable data becomes a "load failed" snapshot instead of an empty chest, so it can never be saved over the real data.
+    private EnderChestSnapshot readSnapshot(UUID uuid, String name, int rows, String contents) {
+        try {
+            return new EnderChestSnapshot(uuid, name, ItemStackSerializer.deserialize(contents), rows);
+        } catch (RuntimeException | LinkageError e) {
+            LOGGER.log(Level.SEVERE, "Could not read the stored enderchest of " + name + " (" + uuid + "). It has been locked and will not be "
+                    + "saved, the stored data was left untouched in the database.", e);
+            return EnderChestSnapshot.loadFailed(uuid, name, rows);
         }
     }
 
@@ -212,12 +238,10 @@ public abstract class SQLDataManager implements DataManager {
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
-                ItemStack[] items = ItemStackSerializer.deserialize(resultSet.getString("CONTENTS"));
                 int rows = resultSet.getInt("ROWS");
                 UUID uuid = UUID.fromString(resultSet.getString("UUID"));
                 String name = resultSet.getString("NAME");
-                EnderChestSnapshot snapshot = new EnderChestSnapshot(uuid, name, items, rows);
-                resultMap.put(name.toLowerCase(), snapshot);
+                resultMap.put(name.toLowerCase(), readSnapshot(uuid, name, rows, resultSet.getString("CONTENTS")));
             }
 
             return resultMap;
