@@ -42,6 +42,8 @@ configurable:
 
   no-rows:
     - '&cYou do not have an enderchest.'
+  no-permission-use:
+    - '&cYou do not have permission to use ender chests.'
   no-enderchest-found:
     - '&c<player> does not have an enderchest.'
   blacklisted-message:

@@ -1,5 +1,5 @@
 #Do not change this manually, this is to keep track of config changes.
-config-version: 7
+config-version: 8
 
 #If mysql is set to false, database defaults to a data.db file
 #Do not set mysql to true unless you have a mysql database set up
@@ -16,6 +16,8 @@ database:
 #Whether this is set to true or false, does NOT affect the enderchest contents that is saved by default minecraft.
 convert-current-ender-chest: true
 
+#Number of rows (1-6) a player gets without any enderchest.size.<rows> permission.
+#Players with enderchest.size.1 ... enderchest.size.6 get that many rows (the highest one wins).
 #If this is set to 0, players will need a permission to be able to open an enderchest
 default-rows: 3
 
@@ -24,16 +26,18 @@ default-locale: 'en_us'
 #This is used when the plugin hooks into placeholder api to provide placeholders
 #This allows you to modify the placeholder identifier.
 #Placeholders can be parsed as %<papi-identifier>_size%
-papi-identifier: 'variableenderchests'
+papi-identifier: 'oberonender'
 
 #You can use this to register the commands that can be used to access the enderchest.
 #The first command is the main command.
 #Any other command in the list will be considered as aliases.
+#Changes take effect after a restart.
 open-enderchest-commands:
   - 'enderchest'
   - 'echest'
+  - 'ec'
 
-#Any worlds specified here will not have access to the Variable Ender Chest
+#Any worlds specified here will not have access to this plugin's ender chest
 #Players will not be able to access it via command OR block.
 #Instead accessing blocks will open the default vanilla enderchest.
 disabled-worlds:
@@ -43,3 +47,31 @@ disabled-worlds:
 
 blacklisted-items:
   - 'COMMAND_BLOCK'
+
+#Sounds played to the player when the ender chest is opened or closed.
+#'block' is used for the ender chest block, 'command' for /enderchest (and its aliases).
+#sound: a Sound name (BLOCK_ENDER_CHEST_OPEN) or a resource key (block.ender_chest.open), resource pack sounds work too.
+#Set enabled to false to play no sound.
+sounds:
+  block:
+    open:
+      enabled: true
+      sound: 'BLOCK_ENDER_CHEST_OPEN'
+      volume: 1.0
+      pitch: 1.0
+    close:
+      enabled: true
+      sound: 'BLOCK_ENDER_CHEST_CLOSE'
+      volume: 1.0
+      pitch: 1.0
+  command:
+    open:
+      enabled: true
+      sound: 'BLOCK_ENDER_CHEST_OPEN'
+      volume: 1.0
+      pitch: 1.0
+    close:
+      enabled: true
+      sound: 'BLOCK_ENDER_CHEST_CLOSE'
+      volume: 1.0
+      pitch: 1.0

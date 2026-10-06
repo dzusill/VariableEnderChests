@@ -22,7 +22,6 @@ public class EnderChestCommand extends PluginCommand {
     private final EnderChestManager ecm;
     private final Messenger messenger;
     private final VariableEnderChests plugin;
-    private boolean openDefaultIfVECDisabledInWorld;
     private final Placeholder<Player> playerPlaceholder = Placeholder.getPlaceholder("player", Player::getName);
 
     private final String PERMISSION_SELF = "enderchest.command";
@@ -93,7 +92,7 @@ public class EnderChestCommand extends PluginCommand {
                 messenger.sendMessage(console, MessageKey.NO_ENDERCHEST_OTHER, playerPlaceholder.getResult(other));
                 return;
             }
-            this.ecm.openEnderChest(enderChest, toOpenFor, rows);
+            this.ecm.openEnderChestFromCommand(enderChest, toOpenFor, rows);
             messenger.sendMessage(console, MessageKey.CONSOLE_OPENED_ENDERCHEST, playerPlaceholder.getResult(toOpenFor), PlaceholderResult.of("<target>", enderChest.getName()));
             return;
         }
@@ -106,7 +105,7 @@ public class EnderChestCommand extends PluginCommand {
                 return;
             }
 
-            this.ecm.openEnderChest(enderChest, toOpenFor);
+            this.ecm.openEnderChestFromCommand(enderChest, toOpenFor);
             messenger.sendMessage(console, MessageKey.CONSOLE_OPENED_ENDERCHEST, playerPlaceholder.getResult(toOpenFor), PlaceholderResult.of("<target>", enderChest.getName()));
         });
 
@@ -136,7 +135,7 @@ public class EnderChestCommand extends PluginCommand {
                 this.plugin.getLogger().severe("Enderchest for online player " + player.getName() + " could not be found.");
                 return;
             }
-            this.ecm.openEnderChest(enderChest, player, rows);
+            this.ecm.openEnderChestFromCommand(enderChest, player, rows);
             return;
         }
 
@@ -162,7 +161,7 @@ public class EnderChestCommand extends PluginCommand {
                 messenger.sendMessage(player, MessageKey.NO_ENDERCHEST_OTHER, playerPlaceholder.getResult(other));
                 return;
             }
-            this.ecm.openEnderChest(enderChest, player, rows);
+            this.ecm.openEnderChestFromCommand(enderChest, player, rows);
             return;
         }
 
@@ -174,7 +173,7 @@ public class EnderChestCommand extends PluginCommand {
                 return;
             }
 
-            this.ecm.openEnderChest(enderChest, player);
+            this.ecm.openEnderChestFromCommand(enderChest, player);
         });
     }
 

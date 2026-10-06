@@ -16,6 +16,7 @@ public enum MessageKey {
     COMMAND_CONSOLE_ONLY("configurable.command-console-only", "&cYou can only use this command from the console."),
     COMMAND_PLAYER_ONLY("internal.command.command-player-only", "You must be a player to use this command"),
     NO_ENDERCHEST_SELF("configurable.no-rows", "&cYou do not have an enderchest."),
+    NO_PERMISSION_USE("configurable.no-permission-use", "&cYou do not have permission to use ender chests."),
     NO_ENDERCHEST_OTHER("configurable.no-enderchest-found", "&c<player> does not have an enderchest."),
     COMMAND_USAGE("configurable.command-usage", "&cUsage: <command>"),
     BLACKLIST_MESSAGE("configurable.blacklisted-message", "&cYou cannot put that item into an ender chest."),

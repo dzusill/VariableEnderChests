@@ -13,6 +13,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -31,6 +32,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class EnderChestManager extends Manager<VariableEnderChests> implements Listener {
@@ -48,8 +50,14 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
     private int defaultRows;
     private final boolean convert;
 
-    private final Sound OPEN_SOUND;
-    private final Sound CLOSE_SOUND;
+    public static final String PERMISSION_USE = "enderchest.use";
+
+    private final SoundSetting blockOpenSound;
+    private final SoundSetting blockCloseSound;
+    private final SoundSetting commandOpenSound;
+    private final SoundSetting commandCloseSound;
+    //players looking at an enderchest they opened by command, so closing it plays the command close sound
+    private final Set<UUID> openFromCommand = new HashSet<>();
 
     private final Set<Material> blacklist = new HashSet<>();
 
@@ -58,17 +66,26 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
         this.dataManager = getPlugin().getDataManager();
 
 
-        //load the correct sound depending on verison
+        //the default sound depends on the version, the config can override it
+        Sound defaultOpen;
+        Sound defaultClose;
         if (MinecraftVersion.getVersion() == MinecraftVersion.MC1_8_R3) {
-            OPEN_SOUND = Sound.valueOf("CHEST_OPEN");
-            CLOSE_SOUND = Sound.valueOf("CHEST_CLOSE");
+            defaultOpen = Sound.valueOf("CHEST_OPEN");
+            defaultClose = Sound.valueOf("CHEST_CLOSE");
         } else if (!MinecraftVersion.isNewerThan(MinecraftVersion.MC1_12_R1)) {
-            OPEN_SOUND = Sound.valueOf("BLOCK_ENDERCHEST_OPEN");
-            CLOSE_SOUND = Sound.valueOf("BLOCK_ENDERCHEST_CLOSE");
+            defaultOpen = Sound.valueOf("BLOCK_ENDERCHEST_OPEN");
+            defaultClose = Sound.valueOf("BLOCK_ENDERCHEST_CLOSE");
         } else {
-            OPEN_SOUND = Sound.valueOf("BLOCK_ENDER_CHEST_OPEN");
-            CLOSE_SOUND = Sound.valueOf("BLOCK_ENDER_CHEST_CLOSE");
+            defaultOpen = Sound.valueOf("BLOCK_ENDER_CHEST_OPEN");
+            defaultClose = Sound.valueOf("BLOCK_ENDER_CHEST_CLOSE");
         }
+
+        ConfigurationSection config = this.getPlugin().getConfig();
+        Logger logger = this.getPlugin().getLogger();
+        this.blockOpenSound = SoundSetting.load(config.getConfigurationSection("sounds.block.open"), defaultOpen, "sounds.block.open", logger);
+        this.blockCloseSound = SoundSetting.load(config.getConfigurationSection("sounds.block.close"), defaultClose, "sounds.block.close", logger);
+        this.commandOpenSound = SoundSetting.load(config.getConfigurationSection("sounds.command.open"), defaultOpen, "sounds.command.open", logger);
+        this.commandCloseSound = SoundSetting.load(config.getConfigurationSection("sounds.command.close"), defaultClose, "sounds.command.close", logger);
 
         //getting config values
         this.convert = this.getPlugin().getConfig().getBoolean("convert-current-ender-chest", true);
@@ -205,6 +222,11 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
         if (event.getClickedBlock().getType() == Material.ENDER_CHEST) {
             event.setCancelled(true);
 
+            if (!player.hasPermission(PERMISSION_USE)) {
+                this.getPlugin().getMessenger().sendMessage(player, MessageKey.NO_PERMISSION_USE);
+                return;
+            }
+
             int rows = this.getNumRows(player);
             if (rows == 0) {
                 this.getPlugin().getMessenger().sendMessage(player, MessageKey.NO_ENDERCHEST_SELF);
@@ -221,13 +243,16 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
                     return;
                 }
 
+                //opened from the block, so it is no longer a command viewer
+                this.openFromCommand.remove(player.getUniqueId());
+
                 if (MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_19_R1)) {
                     org.bukkit.block.EnderChest chestBlock = ((org.bukkit.block.EnderChest) event.getClickedBlock().getState());
                     chestBlock.open();
                     chestBlock.update();
                 }
 
-                event.getPlayer().playSound(event.getClickedBlock().getLocation(), OPEN_SOUND, 1, 1F);
+                this.blockOpenSound.play(event.getPlayer(), event.getClickedBlock().getLocation());
                 this.openEnderChest(enderChest, player, rows);
                 this.openFromBlocks.put(player.getUniqueId(), event.getClickedBlock());
             }
@@ -247,13 +272,18 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
                 chestBlock.close();
                 chestBlock.update();
             }
-            ((Player) event.getPlayer()).playSound(block.getLocation(), CLOSE_SOUND, 1, 1F);
+            this.blockCloseSound.play((Player) event.getPlayer(), block.getLocation());
+        } else if (this.openFromCommand.remove(event.getPlayer().getUniqueId())
+                && event.getInventory().getHolder() instanceof EnderChest) {
+            Player player = (Player) event.getPlayer();
+            this.commandCloseSound.play(player, player.getLocation());
         }
     }
 
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
         this.openFromBlocks.remove(event.getPlayer().getUniqueId());
+        this.openFromCommand.remove(event.getPlayer().getUniqueId());
 
         EnderChest enderChest = getEnderChest(event.getPlayer());
 
@@ -310,12 +340,32 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
     }
 
     public void openEnderChest(EnderChest chest, Player player) {
+        this.open(chest, player);
+    }
+
+    //opens the chest for a command (or the console) and plays the command sounds
+    public void openEnderChestFromCommand(EnderChest chest, Player player, int rows) {
+        chest.setRows(rows);
+        this.openEnderChestFromCommand(chest, player);
+    }
+
+    public void openEnderChestFromCommand(EnderChest chest, Player player) {
+        if (!this.open(chest, player))
+            return;
+
+        this.openFromBlocks.remove(player.getUniqueId());
+        this.openFromCommand.add(player.getUniqueId());
+        this.commandOpenSound.play(player, player.getLocation());
+    }
+
+    private boolean open(EnderChest chest, Player player) {
         //the stored data could not be read, opening an empty chest would let the owner overwrite it
         if (chest.isLoadFailed()) {
             this.getPlugin().getMessenger().sendMessage(player, MessageKey.ENDERCHEST_LOAD_FAILED);
-            return;
+            return false;
         }
         chest.openInventory(player);
+        return true;
     }
 
     public void openEnderChest(Player player, int rows) {

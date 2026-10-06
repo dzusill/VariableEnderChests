@@ -25,18 +25,18 @@ import me.saif.betterenderchests.lang.inventory.impl.OpenEnderchestPacketModifie
 import me.saif.betterenderchests.lang.inventory.packetinterceptor.PacketInterceptor;
 import me.saif.betterenderchests.lang.locale.LocaleLoader;
 import me.saif.betterenderchests.lang.locale.PlayerLocaleFinder;
-import me.saif.betterenderchests.utils.UpdateChecker;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 
 public final class VariableEnderChests extends JavaPlugin {
 
@@ -76,6 +76,16 @@ public final class VariableEnderChests extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        //must run before anything touches the data folder, see LegacyDataMigration
+        try {
+            LegacyDataMigration.migrate(this.getDataFolder(), this.getLogger());
+        } catch (IOException e) {
+            this.getLogger().log(Level.SEVERE, "Could not copy the data of " + LegacyDataMigration.LEGACY_FOLDER
+                    + ". Disabling, nothing was changed in the old folder.", e);
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
         API = new VariableEnderChestAPI(this);
         this.saveDefaultConfig();
 
@@ -112,7 +122,6 @@ public final class VariableEnderChests extends JavaPlugin {
         setupEnderChestManager();
         setupCommands();
         setupHooks();
-        setupMetricsAndCheckForUpdate();
         loadDisabledWorlds();
     }
 
@@ -170,18 +179,6 @@ public final class VariableEnderChests extends JavaPlugin {
         ChestSortHook.hook();
         new InteractiveChatHook(this);
         new ShowItemHook(this);
-    }
-
-    private void setupMetricsAndCheckForUpdate() {
-        Metrics metrics = new Metrics(this, 15279);
-        UpdateChecker updateChecker = new UpdateChecker(this, 102187);
-        updateChecker.getVersion(s -> {
-            if (this.getDescription().getVersion().equals(s)) {
-                getLogger().info(this.getName() + " is up to date.");
-            } else {
-                getLogger().info("There is a new update available.");
-            }
-        });
     }
 
     private void loadDisabledWorlds() {

@@ -1,7 +1,52 @@
-name: VariableEnderChests
+name: OberonEnder
 version: '${project.version}'
 main: me.saif.betterenderchests.VariableEnderChests
-author: minion325
+description: Ender chests with permission based sizes, safe storage and configurable sounds.
+authors: [dzusill, minion325]
 api-version: 1.13
 folia-supported: true
 softdepend: [PlaceholderAPI, ChestSort, ShowItem, InteractiveChat]
+
+permissions:
+  enderchest.use:
+    description: Open an ender chest block.
+    default: true
+  enderchest.command:
+    description: Open your own ender chest with /enderchest (and its aliases).
+    default: op
+  enderchest.command.others:
+    description: View the ender chest of another player with /enderchest <player>.
+    default: op
+  enderchest.modify.others:
+    description: Take and put items in another player's ender chest (needs enderchest.command.others to open it).
+    default: op
+  enderchest.retrieve:
+    description: Open your retrieval inventory (items above your current row count) with /retrieveender.
+    default: op
+  enderchest.retrieve.others:
+    description: Open the retrieval inventory of another player.
+    default: op
+  enderchest.debug:
+    description: Use the debug command.
+    default: op
+  enderchest.clear:
+    description: Clear the ender chest of a player.
+    default: op
+  enderchest.size.1:
+    description: Ender chest with 1 row (9 slots).
+    default: op
+  enderchest.size.2:
+    description: Ender chest with 2 rows (18 slots).
+    default: op
+  enderchest.size.3:
+    description: Ender chest with 3 rows (27 slots).
+    default: op
+  enderchest.size.4:
+    description: Ender chest with 4 rows (36 slots).
+    default: op
+  enderchest.size.5:
+    description: Ender chest with 5 rows (45 slots).
+    default: op
+  enderchest.size.6:
+    description: Ender chest with 6 rows (54 slots).
+    default: op

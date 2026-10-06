@@ -12,7 +12,7 @@ public class ConfigUpdater {
 
     private VariableEnderChests plugin;
 
-    private final int latest = 7;
+    private final int latest = 8;
 
     private int current;
 
@@ -134,6 +134,34 @@ public class ConfigUpdater {
 
             this.plugin.saveConfig();
         }
+
+        //from 7 -> 8: configurable open/close sounds
+        if (this.current == 7) {
+            this.plugin.getConfig().set("config-version", 8);
+            for (String source : Arrays.asList("block", "command")) {
+                setSound("sounds." + source + ".open", "BLOCK_ENDER_CHEST_OPEN");
+                setSound("sounds." + source + ".close", "BLOCK_ENDER_CHEST_CLOSE");
+            }
+
+            if (MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_18_R1)) {
+                this.plugin.getConfig().setComments("sounds", Arrays.asList(
+                        "Sounds played to the player when the ender chest is opened or closed.",
+                        "'block' is used for the ender chest block, 'command' for /enderchest (and its aliases).",
+                        "sound: a Sound name (BLOCK_ENDER_CHEST_OPEN) or a resource key (block.ender_chest.open), resource pack sounds work too.",
+                        "Set enabled to false to play no sound."));
+            }
+
+            this.current++;
+
+            this.plugin.saveConfig();
+        }
+    }
+
+    private void setSound(String path, String sound) {
+        this.plugin.getConfig().set(path + ".enabled", true);
+        this.plugin.getConfig().set(path + ".sound", sound);
+        this.plugin.getConfig().set(path + ".volume", 1.0);
+        this.plugin.getConfig().set(path + ".pitch", 1.0);
     }
 
 
