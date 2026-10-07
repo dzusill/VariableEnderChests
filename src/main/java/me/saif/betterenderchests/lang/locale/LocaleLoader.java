@@ -1,7 +1,7 @@
 package me.saif.betterenderchests.lang.locale;
 
 import com.google.common.collect.Sets;
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.lang.MessageKey;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -18,18 +18,27 @@ import java.util.zip.ZipInputStream;
 
 public class LocaleLoader {
 
-    private VariableEnderChests plugin;
+    private OberonEnder plugin;
     private final Map<String, Locale> localeMap = new ConcurrentHashMap<>();
-    private Locale defaultLocale;
+    private volatile Locale defaultLocale;
 
-    public LocaleLoader(VariableEnderChests plugin) {
+    public LocaleLoader(OberonEnder plugin) {
         this.plugin = plugin;
-        this.loadLocales();
-        this.defaultLocale = this.localeMap.get(plugin.getConfig().getString("default-locale", "en_us").toLowerCase());
+        this.reload();
+    }
 
-        if (this.defaultLocale == null) {
-            defaultLocale = this.localeMap.values().stream().findFirst().orElse(new Locale("en", Sets.newHashSet("us"), new HashMap<>()));
+    /**
+     * Reads every lang file again. Locales are replaced one by one, so a message lookup that runs while this
+     * happens still finds the old text instead of nothing.
+     */
+    public void reload() {
+        this.loadLocales();
+        Locale locale = this.localeMap.get(plugin.getConfig().getString("default-locale", "en_us").toLowerCase());
+
+        if (locale == null) {
+            locale = this.localeMap.values().stream().findFirst().orElse(new Locale("en", Sets.newHashSet("us"), new HashMap<>()));
         }
+        this.defaultLocale = locale;
     }
 
     public Locale getLocale(String name) {

@@ -9,7 +9,15 @@ public class ColorUtil {
 
     private static final Pattern pattern = Pattern.compile("#[a-fA-F0-9]{6}");
 
+    // The hex spellings owners paste into lang files: <#RRGGBB> (MiniMessage style) and &#RRGGBB.
+    // Both are reduced to the plain #RRGGBB form first, otherwise the '&' or the '<' '>' would stay visible.
+    private static final Pattern TAG_HEX = Pattern.compile("<(#[a-fA-F0-9]{6})>");
+    private static final Pattern AMPERSAND_HEX = Pattern.compile("&(#[a-fA-F0-9]{6})");
+
     public static String translate(String message) {
+        message = TAG_HEX.matcher(message).replaceAll("$1");
+        message = AMPERSAND_HEX.matcher(message).replaceAll("$1");
+
         Matcher matcher = pattern.matcher(message);
         while (matcher.find()) {
             String hexCode = message.substring(matcher.start(), matcher.end());

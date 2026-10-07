@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.command.commands;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.command.PluginCommand;
 import me.saif.betterenderchests.data.SQLiteDataManager;
 import me.saif.betterenderchests.data.database.SQLiteDatabase;
@@ -17,9 +17,9 @@ import java.util.UUID;
 
 public class EnderChestDebugCommand extends PluginCommand {
 
-    private VariableEnderChests plugin;
+    private OberonEnder plugin;
 
-    public EnderChestDebugCommand(VariableEnderChests plugin) {
+    public EnderChestDebugCommand(OberonEnder plugin) {
         super("vecdebug");
         this.plugin = plugin;
     }
@@ -38,7 +38,7 @@ public class EnderChestDebugCommand extends PluginCommand {
         }
 
         if (args[0].equalsIgnoreCase("paper?")) {
-            sender.sendMessage(VariableEnderChests.isPaper() ? "Yes" : "No");
+            sender.sendMessage(OberonEnder.isPaper() ? "Yes" : "No");
             return;
         }
 
@@ -99,7 +99,7 @@ public class EnderChestDebugCommand extends PluginCommand {
         File backupFile = new File(pluginFolder, fileName);
 
         if (!backupFile.exists()) {
-            sender.sendMessage("That backup file does not exist in the VariableEnderChest folder");
+            sender.sendMessage("That backup file does not exist in the OberonEnder folder");
             return;
         }
 

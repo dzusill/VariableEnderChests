@@ -1,7 +1,7 @@
 package me.saif.betterenderchests.hooks;
 
 import com.loohp.interactivechat.api.events.InventoryPlaceholderEvent;
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.enderchest.EnderChest;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -10,9 +10,9 @@ import org.bukkit.event.Listener;
 
 public class InteractiveChatHook implements Listener {
 
-    private VariableEnderChests plugin;
+    private OberonEnder plugin;
 
-    public InteractiveChatHook(VariableEnderChests plugin) {
+    public InteractiveChatHook(OberonEnder plugin) {
         if (Bukkit.getPluginManager().getPlugin("InteractiveChat") == null) {
             return;
         }

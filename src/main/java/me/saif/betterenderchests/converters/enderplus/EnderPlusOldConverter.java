@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.converters.enderplus;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.enderchest.EnderChestSnapshot;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -17,7 +17,7 @@ import java.util.UUID;
 
 public class EnderPlusOldConverter extends EnderPlusConverter {
 
-    public EnderPlusOldConverter(VariableEnderChests plugin) {
+    public EnderPlusOldConverter(OberonEnder plugin) {
         super(plugin, "EnderPlusOld");
     }
 

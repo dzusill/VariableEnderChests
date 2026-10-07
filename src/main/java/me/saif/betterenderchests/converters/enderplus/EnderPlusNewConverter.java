@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.converters.enderplus;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.converters.Converter;
 import me.saif.betterenderchests.data.DataManager;
 import me.saif.betterenderchests.enderchest.EnderChestSnapshot;
@@ -18,7 +18,7 @@ public class EnderPlusNewConverter extends Converter {
 
     private static final int BATCH_AMOUNT = 100;
 
-    public EnderPlusNewConverter(VariableEnderChests plugin) {
+    public EnderPlusNewConverter(OberonEnder plugin) {
         super(plugin, "EnderPlusNew");
     }
 

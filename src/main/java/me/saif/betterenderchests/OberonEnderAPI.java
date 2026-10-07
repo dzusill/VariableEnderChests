@@ -6,11 +6,11 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-public class VariableEnderChestAPI {
+public class OberonEnderAPI {
 
-    private VariableEnderChests plugin;
+    private OberonEnder plugin;
 
-    public VariableEnderChestAPI(VariableEnderChests plugin) {
+    public OberonEnderAPI(OberonEnder plugin) {
         this.plugin = plugin;
     }
 

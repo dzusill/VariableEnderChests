@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.converters.enderplus;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.converters.Converter;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -11,7 +11,7 @@ import java.io.IOException;
 
 public abstract class EnderPlusConverter extends Converter {
 
-    public EnderPlusConverter(VariableEnderChests plugin, String name) {
+    public EnderPlusConverter(OberonEnder plugin, String name) {
         super(plugin, name);
     }
 

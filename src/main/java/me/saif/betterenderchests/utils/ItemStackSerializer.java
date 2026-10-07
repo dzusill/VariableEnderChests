@@ -11,11 +11,44 @@ import org.bukkit.util.io.BukkitObjectOutputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.Iterator;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class ItemStackSerializer {
 
+    /**
+     * Items are written with the server's own item codec ({@link ItemStack#serializeAsBytes()}), so saving keeps
+     * working on Minecraft versions the bundled NBT-API does not know yet. The NBT-API is only the fallback for
+     * servers without that method. Both produce the same {@code nbtbytes:} layout.
+     */
     public static String serialize(ItemStack[] items) {
+        try {
+            return serializeWithServerCodec(items);
+        } catch (Exception | LinkageError e) {
+            return serializeWithNbtApi(items);
+        }
+    }
+
+    static String serializeWithServerCodec(ItemStack[] items) {
+        try {
+            List<RawNbt.Entry> entries = new ArrayList<>();
+            for (int i = 0; i < items.length; ++i) {
+                ItemStack item = items[i];
+                if (item != null && item.getType() != Material.AIR) {
+                    byte[] payload = RawNbt.payloadOfDocument(gunzip(item.serializeAsBytes()));
+                    entries.add(new RawNbt.Entry(i, RawNbt.withSlot(payload, i)));
+                }
+            }
+            return "nbtbytes:" + Base64Coder.encodeLines(gzip(RawNbt.assemble(items.length, entries)));
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to save item stacks.", e);
+        }
+    }
+
+    private static String serializeWithNbtApi(ItemStack[] items) {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
@@ -75,25 +108,18 @@ public class ItemStackSerializer {
     }
 
     public static ItemStack[] deserializeNBTBytes(String str) {
-        NBTContainer comp;
+        RawNbt.Container container;
         try {
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(str));
-            comp = new NBTContainer(NBTReflectionUtil.readNBT(inputStream));
+            container = RawNbt.parse(gunzip(Base64Coder.decodeLines(str)));
         } catch (Exception | LinkageError e) {
             throw new ItemDeserializationException("Stored enderchest data could not be read", e);
         }
 
-        if (!comp.hasTag("size"))
-            throw new ItemDeserializationException("Stored enderchest data has no size tag");
-
-        ItemStack[] rebuild = new ItemStack[comp.getInteger("size")];
+        ItemStack[] rebuild = new ItemStack[container.size];
 
         for (int i = 0; i < rebuild.length; ++i) {
             rebuild[i] = new ItemStack(Material.AIR);
         }
-
-        if (!comp.hasTag("items"))
-            return rebuild;
 
         // A single unreadable item must never be silently dropped: the chest is saved
         // again later and the item would be gone for good. Collect every failure and
@@ -103,28 +129,20 @@ public class ItemStackSerializer {
         Throwable firstCause = null;
         StringBuilder failedSlots = new StringBuilder();
 
-        for (ReadWriteNBT lcomp : comp.getCompoundList("items")) {
+        for (RawNbt.Entry entry : container.items) {
             total++;
-            int slot = -1;
             try {
-                slot = lcomp.getInteger("Slot");
+                if (entry.slot < 0 || entry.slot >= rebuild.length)
+                    throw new IllegalStateException("item has no valid slot (" + entry.slot + ")");
 
-                if (lcomp.hasTag("Count") && MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_20_R4)) {
-                    lcomp = DataFixerUtil.fixUpItemData(lcomp, 3700, DataFixerUtil.getCurrentVersion());
-                }
-
-                ItemStack item = NBT.itemStackFromNBT(lcomp);
-                if (item == null)
-                    throw new IllegalStateException("item could not be parsed from its stored data");
-
-                rebuild[slot] = item;
+                rebuild[entry.slot] = readItem(entry);
             } catch (Exception | LinkageError e) {
                 failed++;
                 if (firstCause == null)
                     firstCause = e;
                 if (failedSlots.length() > 0)
                     failedSlots.append(", ");
-                failedSlots.append(slot);
+                failedSlots.append(entry.slot);
             }
         }
 
@@ -134,6 +152,45 @@ public class ItemStackSerializer {
         }
 
         return rebuild;
+    }
+
+    /**
+     * The server's own item codec first (it data-fixes older items itself and does not depend on the NBT-API
+     * knowing the running Minecraft version); the NBT-API only for items the server codec rejects.
+     */
+    private static ItemStack readItem(RawNbt.Entry entry) throws Exception {
+        byte[] gzipped = gzip(RawNbt.asDocument(entry.payload));
+        try {
+            ItemStack item = ItemStack.deserializeBytes(gzipped);
+            if (item != null)
+                return item;
+        } catch (Exception | LinkageError ignored) {
+            // fall through to the NBT-API
+        }
+
+        ReadWriteNBT lcomp = new NBTContainer(new ByteArrayInputStream(gzipped));
+        if (lcomp.hasTag("Count") && MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_20_R4)) {
+            lcomp = DataFixerUtil.fixUpItemData(lcomp, 3700, DataFixerUtil.getCurrentVersion());
+        }
+
+        ItemStack item = NBT.itemStackFromNBT(lcomp);
+        if (item == null)
+            throw new IllegalStateException("item could not be parsed from its stored data");
+        return item;
+    }
+
+    private static byte[] gzip(byte[] data) throws IOException {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (GZIPOutputStream out = new GZIPOutputStream(bytes)) {
+            out.write(data);
+        }
+        return bytes.toByteArray();
+    }
+
+    private static byte[] gunzip(byte[] data) throws IOException {
+        try (GZIPInputStream in = new GZIPInputStream(new ByteArrayInputStream(data))) {
+            return in.readAllBytes();
+        }
     }
 
     public static ItemStack[] deserializeJson(String str) {

@@ -1,15 +1,15 @@
 package me.saif.betterenderchests.converters;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 
 public abstract class Converter {
 
     private String name;
-    protected VariableEnderChests plugin;
+    protected OberonEnder plugin;
 
-    public Converter(VariableEnderChests plugin, String name) {
+    public Converter(OberonEnder plugin, String name) {
         this.plugin = plugin;
         this.name = name;
     }

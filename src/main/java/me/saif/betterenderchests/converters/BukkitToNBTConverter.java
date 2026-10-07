@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.converters;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.data.DataManager;
 import me.saif.betterenderchests.enderchest.EnderChestSnapshot;
 import me.saif.betterenderchests.utils.FoliaScheduler;
@@ -16,7 +16,7 @@ public class BukkitToNBTConverter extends Converter {
 
     private static final int BATCH_AMOUNT = 100;
 
-    public BukkitToNBTConverter(VariableEnderChests plugin) {
+    public BukkitToNBTConverter(OberonEnder plugin) {
         super(plugin, "BukkitToNBT");
     }
 

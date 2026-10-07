@@ -2,7 +2,7 @@ package me.saif.betterenderchests.converters;
 
 import de.tr7zw.changeme.nbtapi.*;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.data.DataManager;
 import me.saif.betterenderchests.enderchest.EnderChestSnapshot;
 import me.saif.betterenderchests.utils.FoliaScheduler;
@@ -20,7 +20,7 @@ public class VanillaConverter extends Converter {
     private static final int BATCH_AMOUNT = 100;
     private File playerdataFolder = new File(Bukkit.getWorlds().get(0).getWorldFolder(), "playerdata");
 
-    public VanillaConverter(VariableEnderChests plugin) {
+    public VanillaConverter(OberonEnder plugin) {
         super(plugin, "VanillaConverter");
     }
 

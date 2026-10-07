@@ -1,7 +1,7 @@
 package me.saif.betterenderchests.enderchest;
 
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.command.commands.RetrieveEnderContentsCommand;
 import me.saif.betterenderchests.lang.MessageKey;
 import org.bukkit.Material;
@@ -15,9 +15,9 @@ public class EnderChestRetrieverClickListener implements Listener {
 
     private static final String PERMISSION_TO_EDIT = RetrieveEnderContentsCommand.PERMISSION_OTHERS;
 
-    private final VariableEnderChests plugin;
+    private final OberonEnder plugin;
 
-    public EnderChestRetrieverClickListener(VariableEnderChests plugin) {
+    public EnderChestRetrieverClickListener(OberonEnder plugin) {
         this.plugin = plugin;
     }
 

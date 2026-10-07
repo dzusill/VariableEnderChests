@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.command.commands;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.command.PluginCommand;
 import me.saif.betterenderchests.enderchest.EnderChest;
 import me.saif.betterenderchests.enderchest.EnderChestManager;
@@ -21,13 +21,13 @@ public class RetrieveEnderContentsCommand extends PluginCommand {
 
     private final EnderChestManager ecm;
     private final Messenger messenger;
-    private final VariableEnderChests plugin;
+    private final OberonEnder plugin;
     private final Placeholder<Player> playerPlaceholder = Placeholder.getPlaceholder("player", Player::getName);
 
     public static final String PERMISSION_SELF = "enderchest.retrieve";
     public static final String PERMISSION_OTHERS = "enderchest.retrieve.others";
 
-    public RetrieveEnderContentsCommand(VariableEnderChests plugin, String name, List<String> aliases) {
+    public RetrieveEnderContentsCommand(OberonEnder plugin, String name, List<String> aliases) {
         super(name, aliases.toArray(new String[0]));
         this.plugin = plugin;
         this.ecm = plugin.getEnderChestManager();

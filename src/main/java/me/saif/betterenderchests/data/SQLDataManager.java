@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 public abstract class SQLDataManager implements DataManager {
 
-    private static final Logger LOGGER = Logger.getLogger("VariableEnderChests");
+    private static final Logger LOGGER = Logger.getLogger("OberonEnder");
 
     protected final SQLDatabase database;
     private final String dataTableName = "enderchests";

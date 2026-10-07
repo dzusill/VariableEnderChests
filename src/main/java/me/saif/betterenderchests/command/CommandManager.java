@@ -1,7 +1,7 @@
 package me.saif.betterenderchests.command;
 
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.SimpleCommandMap;
@@ -11,10 +11,10 @@ import java.util.*;
 
 public class CommandManager {
 
-    private final VariableEnderChests plugin;
+    private final OberonEnder plugin;
     private final Map<PluginCommand, Command> pluginCommands = new HashMap<>();
 
-    public CommandManager(VariableEnderChests plugin) {
+    public CommandManager(OberonEnder plugin) {
         this.plugin = plugin;
     }
 

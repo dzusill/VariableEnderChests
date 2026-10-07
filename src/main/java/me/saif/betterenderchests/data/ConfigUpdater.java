@@ -1,7 +1,7 @@
 package me.saif.betterenderchests.data;
 
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,20 +10,20 @@ import java.util.Locale;
 
 public class ConfigUpdater {
 
-    private VariableEnderChests plugin;
+    private OberonEnder plugin;
 
     private final int latest = 8;
 
     private int current;
 
-    public ConfigUpdater(VariableEnderChests plugin) {
+    public ConfigUpdater(OberonEnder plugin) {
         this.plugin = plugin;
 
         this.current = this.plugin.getConfig().getInt("config-version");
 
         if (current < latest && !MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_18_R1)) {
             this.plugin.getConfig().options().header("You are using an older version of minecraft so comments have been deleted by updating the config\n" +
-                    "Check out https://github.com/minion325/VariableEnderChests/blob/master/src/main/resources/config.yml to see the config.yml with comments\n" +
+                    "The config.yml shipped with the plugin shows every option with its comments.\n" +
                     "Do not touch config-version. This is automatically updated by the plugin.");
         }
         while (current < latest) {
@@ -125,7 +125,7 @@ public class ConfigUpdater {
 
             if (MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_18_R1)) {
                 this.plugin.getConfig().setComments("disabled-worlds", Arrays.asList(
-                        "Any worlds specified here will not have access to the Variable Ender Chest",
+                        "Any worlds specified here will not have access to this plugin's ender chest",
                         "Players will not be able to access it via command OR block.",
                         "Instead accessing blocks will open the default vanilla enderchest."));
             }

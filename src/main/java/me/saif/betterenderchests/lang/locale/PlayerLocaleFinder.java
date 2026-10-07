@@ -1,7 +1,7 @@
 package me.saif.betterenderchests.lang.locale;
 
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.reflectionutils.ReflectionUtils;
 import org.bukkit.entity.Player;
 
@@ -10,11 +10,11 @@ import java.lang.reflect.Method;
 
 public class PlayerLocaleFinder {
 
-    private VariableEnderChests plugin;
+    private OberonEnder plugin;
     private Method getLocaleMethod;
 
 
-    public PlayerLocaleFinder(VariableEnderChests plugin) {
+    public PlayerLocaleFinder(OberonEnder plugin) {
         this.plugin = plugin;
 
         if (!MinecraftVersion.isNewerThan(MinecraftVersion.MC1_11_R1)) {

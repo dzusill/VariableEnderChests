@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.converters;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.data.DataManager;
 import me.saif.betterenderchests.data.MySQLDataManager;
 import me.saif.betterenderchests.data.SQLDataManager;
@@ -19,7 +19,7 @@ public class SQLiteMySQLConverter extends Converter {
 
     private static final int BATCH_AMOUNT = 100;
 
-    public SQLiteMySQLConverter(VariableEnderChests plugin) {
+    public SQLiteMySQLConverter(OberonEnder plugin) {
         super(plugin, "SQLiteMySQLConverter");
     }
 

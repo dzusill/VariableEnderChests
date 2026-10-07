@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.lang.inventory;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.enderchest.EnderChest;
 import me.saif.betterenderchests.lang.locale.Locale;
 import me.saif.betterenderchests.utils.FoliaScheduler;
@@ -18,13 +18,13 @@ import java.util.Map;
 
 public class InventoryNameListener_1_20 implements Listener {
 
-    private final VariableEnderChests plugin;
+    private final OberonEnder plugin;
     private Method text, titleOverride;
 
-    public InventoryNameListener_1_20(VariableEnderChests plugin) {
+    public InventoryNameListener_1_20(OberonEnder plugin) {
         this.plugin = plugin;
 
-        if (VariableEnderChests.isPaper()) {
+        if (OberonEnder.isPaper()) {
             try {
                 Class<?> componentClass = Class.forName("net.kyori.adventure.text.Component");
                 this.text = componentClass.getMethod("text", String.class);
@@ -64,7 +64,7 @@ public class InventoryNameListener_1_20 implements Listener {
 
         //This is a 1.20+ paper feature to set the inv name via the event
         //we can then update the actual inv name a tick later
-        if (VariableEnderChests.isPaper()) {
+        if (OberonEnder.isPaper()) {
             if (this.text == null || this.titleOverride == null)
                 return;
 

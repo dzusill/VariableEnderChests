@@ -25,7 +25,7 @@ public class MySQLDatabase extends SQLDatabase {
         dataSource.setUsername(username);
         dataSource.setPassword(password);
         dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-        dataSource.setPoolName("[VariableEnderChests-MySQL]");
+        dataSource.setPoolName("[OberonEnder-MySQL]");
         dataSource.setConnectionTestQuery("SELECT 1");
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {

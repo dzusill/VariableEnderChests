@@ -1,7 +1,7 @@
 package me.saif.betterenderchests.hooks;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,9 +10,9 @@ import java.util.Locale;
 
 public class PAPIEnderChestHook extends PlaceholderExpansion {
 
-    private final VariableEnderChests plugin;
+    private final OberonEnder plugin;
 
-    public PAPIEnderChestHook(VariableEnderChests plugin) {
+    public PAPIEnderChestHook(OberonEnder plugin) {
         this.plugin = plugin;
     }
 

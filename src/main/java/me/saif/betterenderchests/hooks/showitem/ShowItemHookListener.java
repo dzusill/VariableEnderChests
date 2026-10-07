@@ -4,7 +4,7 @@ import de.themoep.ShowItem.api.data.EnderData;
 import de.themoep.ShowItem.api.data.LiveEnderData;
 import de.themoep.ShowItem.api.data.StaticEnderData;
 import de.themoep.ShowItem.api.event.ViewEnderchestEvent;
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.enderchest.EnderChest;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,9 +14,9 @@ import org.bukkit.inventory.ItemStack;
 
 public class ShowItemHookListener implements Listener {
 
-    private VariableEnderChests plugin;
+    private OberonEnder plugin;
 
-    public ShowItemHookListener(VariableEnderChests plugin) {
+    public ShowItemHookListener(OberonEnder plugin) {
         this.plugin = plugin;
     }
 

@@ -1,6 +1,6 @@
 name: OberonEnder
 version: '${project.version}'
-main: me.saif.betterenderchests.VariableEnderChests
+main: me.saif.betterenderchests.OberonEnder
 description: Ender chests with permission based sizes, safe storage and configurable sounds.
 authors: [dzusill, minion325]
 api-version: 1.13
@@ -28,6 +28,9 @@ permissions:
     default: op
   enderchest.debug:
     description: Use the debug command.
+    default: op
+  enderchest.reload:
+    description: Reload config.yml and the lang files with /oberonender reload.
     default: op
   enderchest.clear:
     description: Clear the ender chest of a player.

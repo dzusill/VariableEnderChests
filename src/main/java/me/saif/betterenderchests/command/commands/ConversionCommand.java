@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.command.commands;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.command.PluginCommand;
 import me.saif.betterenderchests.converters.Converter;
 import me.saif.betterenderchests.lang.MessageKey;
@@ -19,13 +19,13 @@ import java.util.stream.Collectors;
 
 public class ConversionCommand extends PluginCommand {
 
-    private final VariableEnderChests plugin;
+    private final OberonEnder plugin;
     private final Map<CommandSender, Converter> confirmMap = new HashMap<>();
     private final Placeholder<String> usagePlaceholder = Placeholder.getStringPlaceholder("command");
     private final Placeholder<Converter> converterPlaceholder = Placeholder.getPlaceholder("converter", Converter::getName);
     private final Messenger messenger;
 
-    public ConversionCommand(VariableEnderChests plugin) {
+    public ConversionCommand(OberonEnder plugin) {
         super("enderchestconvert", "echestconvert");
         this.plugin = plugin;
         this.messenger = plugin.getMessenger();

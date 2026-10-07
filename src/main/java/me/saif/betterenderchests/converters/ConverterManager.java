@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.converters;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.converters.enderplus.EnderPlusNewConverter;
 import me.saif.betterenderchests.converters.enderplus.EnderPlusOldConverter;
 import me.saif.betterenderchests.utils.CaselessString;
@@ -12,11 +12,11 @@ import java.util.Set;
 
 public class ConverterManager {
 
-    private VariableEnderChests plugin;
+    private OberonEnder plugin;
     private Map<CaselessString, Converter> converterMap = new HashMap<>();
     private boolean converting = false;
 
-    public ConverterManager(VariableEnderChests plugin) {
+    public ConverterManager(OberonEnder plugin) {
         this.plugin = plugin;
 
         this.addConverter(new EnderPlusOldConverter(this.plugin));

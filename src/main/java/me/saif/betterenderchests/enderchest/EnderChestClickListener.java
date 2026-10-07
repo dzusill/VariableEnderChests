@@ -1,7 +1,7 @@
 package me.saif.betterenderchests.enderchest;
 
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.lang.MessageKey;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,9 +13,9 @@ public class EnderChestClickListener implements Listener {
 
     private static final String PERMISSION_TO_EDIT = "enderchest.modify.others";
 
-    private VariableEnderChests plugin;
+    private OberonEnder plugin;
 
-    public EnderChestClickListener(VariableEnderChests plugin) {
+    public EnderChestClickListener(OberonEnder plugin) {
         this.plugin = plugin;
     }
 

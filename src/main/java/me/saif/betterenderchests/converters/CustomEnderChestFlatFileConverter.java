@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.converters;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.converters.enderplus.EnderPlusConverter;
 import me.saif.betterenderchests.enderchest.EnderChestSnapshot;
 import org.bukkit.Bukkit;
@@ -17,7 +17,7 @@ import java.util.*;
 
 public class CustomEnderChestFlatFileConverter extends Converter{
 
-    public CustomEnderChestFlatFileConverter(VariableEnderChests plugin) {
+    public CustomEnderChestFlatFileConverter(OberonEnder plugin) {
         super(plugin, "CustomEnderChestFlatFile");
     }
 

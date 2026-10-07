@@ -2,7 +2,7 @@ package me.saif.betterenderchests.enderchest;
 
 import com.google.common.collect.Sets;
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.data.DataManager;
 import me.saif.betterenderchests.lang.MessageKey;
 import me.saif.betterenderchests.utils.Callback;
@@ -35,7 +35,7 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class EnderChestManager extends Manager<VariableEnderChests> implements Listener {
+public class EnderChestManager extends Manager<OberonEnder> implements Listener {
 
     private final DataManager dataManager;
 
@@ -47,63 +47,26 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
     private final Set<EnderChestSnapshot> snapshotsToSave = Sets.newConcurrentHashSet();
 
     private final Map<UUID, Block> openFromBlocks = new HashMap<>();
-    private int defaultRows;
-    private final boolean convert;
+    private volatile int defaultRows;
+    private volatile boolean convert;
 
     public static final String PERMISSION_USE = "enderchest.use";
 
-    private final SoundSetting blockOpenSound;
-    private final SoundSetting blockCloseSound;
-    private final SoundSetting commandOpenSound;
-    private final SoundSetting commandCloseSound;
+    private volatile SoundSetting blockOpenSound;
+    private volatile SoundSetting blockCloseSound;
+    private volatile SoundSetting commandOpenSound;
+    private volatile SoundSetting commandCloseSound;
     //players looking at an enderchest they opened by command, so closing it plays the command close sound
     private final Set<UUID> openFromCommand = new HashSet<>();
 
-    private final Set<Material> blacklist = new HashSet<>();
+    private volatile Set<Material> blacklist = new HashSet<>();
 
-    public EnderChestManager(VariableEnderChests plugin) {
+    public EnderChestManager(OberonEnder plugin) {
         super(plugin);
         this.dataManager = getPlugin().getDataManager();
 
 
-        //the default sound depends on the version, the config can override it
-        Sound defaultOpen;
-        Sound defaultClose;
-        if (MinecraftVersion.getVersion() == MinecraftVersion.MC1_8_R3) {
-            defaultOpen = Sound.valueOf("CHEST_OPEN");
-            defaultClose = Sound.valueOf("CHEST_CLOSE");
-        } else if (!MinecraftVersion.isNewerThan(MinecraftVersion.MC1_12_R1)) {
-            defaultOpen = Sound.valueOf("BLOCK_ENDERCHEST_OPEN");
-            defaultClose = Sound.valueOf("BLOCK_ENDERCHEST_CLOSE");
-        } else {
-            defaultOpen = Sound.valueOf("BLOCK_ENDER_CHEST_OPEN");
-            defaultClose = Sound.valueOf("BLOCK_ENDER_CHEST_CLOSE");
-        }
-
-        ConfigurationSection config = this.getPlugin().getConfig();
-        Logger logger = this.getPlugin().getLogger();
-        this.blockOpenSound = SoundSetting.load(config.getConfigurationSection("sounds.block.open"), defaultOpen, "sounds.block.open", logger);
-        this.blockCloseSound = SoundSetting.load(config.getConfigurationSection("sounds.block.close"), defaultClose, "sounds.block.close", logger);
-        this.commandOpenSound = SoundSetting.load(config.getConfigurationSection("sounds.command.open"), defaultOpen, "sounds.command.open", logger);
-        this.commandCloseSound = SoundSetting.load(config.getConfigurationSection("sounds.command.close"), defaultClose, "sounds.command.close", logger);
-
-        //getting config values
-        this.convert = this.getPlugin().getConfig().getBoolean("convert-current-ender-chest", true);
-        this.defaultRows = this.getPlugin().getConfig().getInt("default-rows", 3);
-        if (this.defaultRows > 6)
-            this.defaultRows = 6;
-        else if (this.defaultRows < 0)
-            this.defaultRows = 0;
-
-        for (String s : this.getPlugin().getConfig().getStringList("blacklisted-items")) {
-            Material material = Material.matchMaterial(s);
-            if (material == null) {
-                plugin.getLogger().warning("Blacklisted item by the name of \"" + s + "\" found. This is not a valid minecraft material. Ignoring...");
-                continue;
-            }
-
-            this.blacklist.add(material);
-        }
+        reloadSettings();
 
         //load data for already online players eg. if plugin is reloaded.
         FoliaScheduler.runGlobal(plugin, () -> {
@@ -311,6 +274,53 @@ public class EnderChestManager extends Manager<VariableEnderChests> implements L
 
         //someone is watching the enderchest so keep it loaded
         //we will deal with this later when clearing cache periodically.
+    }
+
+    /**
+     * Reads the sounds, default rows, blacklist and converter switch from the plugin config. Runs at startup and
+     * on /oberonender reload; it never touches stored ender chests.
+     */
+    public void reloadSettings() {
+        //the default sound depends on the version, the config can override it
+        Sound defaultOpen;
+        Sound defaultClose;
+        if (MinecraftVersion.getVersion() == MinecraftVersion.MC1_8_R3) {
+            defaultOpen = Sound.valueOf("CHEST_OPEN");
+            defaultClose = Sound.valueOf("CHEST_CLOSE");
+        } else if (!MinecraftVersion.isNewerThan(MinecraftVersion.MC1_12_R1)) {
+            defaultOpen = Sound.valueOf("BLOCK_ENDERCHEST_OPEN");
+            defaultClose = Sound.valueOf("BLOCK_ENDERCHEST_CLOSE");
+        } else {
+            defaultOpen = Sound.valueOf("BLOCK_ENDER_CHEST_OPEN");
+            defaultClose = Sound.valueOf("BLOCK_ENDER_CHEST_CLOSE");
+        }
+
+        ConfigurationSection config = this.getPlugin().getConfig();
+        Logger logger = this.getPlugin().getLogger();
+        this.blockOpenSound = SoundSetting.load(config.getConfigurationSection("sounds.block.open"), defaultOpen, "sounds.block.open", logger);
+        this.blockCloseSound = SoundSetting.load(config.getConfigurationSection("sounds.block.close"), defaultClose, "sounds.block.close", logger);
+        this.commandOpenSound = SoundSetting.load(config.getConfigurationSection("sounds.command.open"), defaultOpen, "sounds.command.open", logger);
+        this.commandCloseSound = SoundSetting.load(config.getConfigurationSection("sounds.command.close"), defaultClose, "sounds.command.close", logger);
+
+        //getting config values
+        this.convert = this.getPlugin().getConfig().getBoolean("convert-current-ender-chest", true);
+        this.defaultRows = this.getPlugin().getConfig().getInt("default-rows", 3);
+        if (this.defaultRows > 6)
+            this.defaultRows = 6;
+        else if (this.defaultRows < 0)
+            this.defaultRows = 0;
+
+        Set<Material> newBlacklist = new HashSet<>();
+        for (String s : this.getPlugin().getConfig().getStringList("blacklisted-items")) {
+            Material material = Material.matchMaterial(s);
+            if (material == null) {
+                this.getPlugin().getLogger().warning("Blacklisted item by the name of \"" + s + "\" found. This is not a valid minecraft material. Ignoring...");
+                continue;
+            }
+
+            newBlacklist.add(material);
+        }
+        this.blacklist = newBlacklist;
     }
 
     public EnderChest getEnderChest(Player player) {

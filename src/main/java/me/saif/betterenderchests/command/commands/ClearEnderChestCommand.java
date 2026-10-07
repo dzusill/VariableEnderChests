@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.command.commands;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.command.PluginCommand;
 import me.saif.betterenderchests.enderchest.EnderChest;
 import me.saif.betterenderchests.enderchest.EnderChestManager;
@@ -24,11 +24,11 @@ public class ClearEnderChestCommand extends PluginCommand {
     private final Placeholder<String> usagePlaceholder = Placeholder.getStringPlaceholder("command");
     private final EnderChestManager ecm;
     private final Messenger messenger;
-    private VariableEnderChests plugin;
+    private OberonEnder plugin;
 
     private final String PERMISSION = "enderchest.clear";
 
-    public ClearEnderChestCommand(VariableEnderChests plugin) {
+    public ClearEnderChestCommand(OberonEnder plugin) {
         super("clearenderchest", "clearechest");
         this.plugin = plugin;
         this.ecm = plugin.getEnderChestManager();

@@ -27,6 +27,8 @@ import me.saif.betterenderchests.lang.locale.LocaleLoader;
 import me.saif.betterenderchests.lang.locale.PlayerLocaleFinder;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -36,11 +38,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 
-public final class VariableEnderChests extends JavaPlugin {
+public final class OberonEnder extends JavaPlugin {
 
-    private static VariableEnderChestAPI API;
+    private static OberonEnderAPI API;
     private static final boolean paper;
 
     static {
@@ -58,7 +59,7 @@ public final class VariableEnderChests extends JavaPlugin {
         return paper;
     }
 
-    public static VariableEnderChestAPI getAPI() {
+    public static OberonEnderAPI getAPI() {
         return API;
     }
 
@@ -72,21 +73,11 @@ public final class VariableEnderChests extends JavaPlugin {
     private PacketInterceptor packetInterceptor;
     private CommandManager commandManager;
     private PAPIEnderChestHook enderChestHook;
-    private Set<String> disabledWorlds;
+    private volatile Set<String> disabledWorlds;
 
     @Override
     public void onEnable() {
-        //must run before anything touches the data folder, see LegacyDataMigration
-        try {
-            LegacyDataMigration.migrate(this.getDataFolder(), this.getLogger());
-        } catch (IOException e) {
-            this.getLogger().log(Level.SEVERE, "Could not copy the data of " + LegacyDataMigration.LEGACY_FOLDER
-                    + ". Disabling, nothing was changed in the old folder.", e);
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-
-        API = new VariableEnderChestAPI(this);
+        API = new OberonEnderAPI(this);
         this.saveDefaultConfig();
 
         new ConfigUpdater(this);
@@ -160,6 +151,7 @@ public final class VariableEnderChests extends JavaPlugin {
         this.commandManager.registerCommand(new ClearEnderChestCommand(this));
         this.commandManager.registerCommand(new ConversionCommand(this));
         this.commandManager.registerCommand(new EnderChestDebugCommand(this));
+        this.commandManager.registerCommand(new ReloadCommand(this));
         this.commandManager.registerCommand(new RetrieveEnderContentsCommand(this, "retrieveender", Lists.newArrayList()));
 
         List<String> aliases = this.getConfig().getStringList("open-enderchest-commands");
@@ -179,6 +171,29 @@ public final class VariableEnderChests extends JavaPlugin {
         ChestSortHook.hook();
         new InteractiveChatHook(this);
         new ShowItemHook(this);
+    }
+
+    /**
+     * Applies config.yml and the lang files again without touching stored ender chests or the database.
+     * The new config is parsed first and nothing is applied if it is not valid YAML, because
+     * {@code reloadConfig()} would silently fall back to an empty config.
+     * Needs a restart: database settings, command names and aliases, papi-identifier.
+     *
+     * @return null on success, otherwise why nothing was reloaded
+     */
+    public String reloadSettings() {
+        File file = new File(this.getDataFolder(), "config.yml");
+        try {
+            new YamlConfiguration().load(file);
+        } catch (IOException | InvalidConfigurationException e) {
+            return "config.yml could not be read: " + e.getMessage();
+        }
+
+        this.reloadConfig();
+        this.localeLoader.reload();
+        this.enderChestManager.reloadSettings();
+        this.loadDisabledWorlds();
+        return null;
     }
 
     private void loadDisabledWorlds() {

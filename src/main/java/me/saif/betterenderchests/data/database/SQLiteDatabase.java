@@ -27,7 +27,7 @@ public class SQLiteDatabase extends SQLDatabase {
         dataSource.setJdbcUrl("jdbc:sqlite:" + folder.toPath().toAbsolutePath().resolve(fileName));
         dataSource.setDriverClassName("org.sqlite.JDBC");
         dataSource.setConnectionTestQuery("SELECT 1");
-        dataSource.setPoolName("[VariableEnderChests-SQLite]");
+        dataSource.setPoolName("[OberonEnder-SQLite]");
     }
 
     @Override

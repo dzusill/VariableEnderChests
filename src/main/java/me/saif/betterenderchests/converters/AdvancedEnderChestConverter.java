@@ -1,6 +1,6 @@
 package me.saif.betterenderchests.converters;
 
-import me.saif.betterenderchests.VariableEnderChests;
+import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.data.DataManager;
 import me.saif.betterenderchests.enderchest.EnderChestSnapshot;
 import me.saif.betterenderchests.utils.FoliaScheduler;
@@ -18,7 +18,7 @@ public class AdvancedEnderChestConverter extends Converter {
 
     private static final int BATCH_AMOUNT = 100;
 
-    public AdvancedEnderChestConverter(VariableEnderChests plugin) {
+    public AdvancedEnderChestConverter(OberonEnder plugin) {
         super(plugin, "AdvancedEnderchest");
     }
 
