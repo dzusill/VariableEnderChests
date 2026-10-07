@@ -1,8 +1,7 @@
 # CLAUDE.md
 
-`OberonEnder` — permission-sized ender chests for the Oberon server. A fork of minion325/VariableEnderChests
-(fork: dzusill/VariableEnderChests), renamed for the client. Internal packages and class names
-(`me.saif.betterenderchests`, `VariableEnderChests`) were kept on purpose; only player/owner-facing names changed.
+`OberonEnder` — permission-sized ender chests for the Oberon server. Main class `me.saif.betterenderchests.OberonEnder`,
+data folder `plugins/OberonEnder/`. The Java package name `me.saif.betterenderchests` was kept on purpose.
 
 ## Build
 
@@ -17,15 +16,15 @@ JAVA_HOME=/opt/homebrew/opt/openjdk@21 mvn -f pom.local.xml clean package   # ->
 
 ## Contracts
 
-- **Data folder migration** (`data/LegacyDataMigration`): the first start copies `plugins/VariableEnderChests/`
-  into `plugins/OberonEnder/` (owner files replace generated defaults), then writes `.migrated-from-VariableEnderChests`
-  so it never runs again. The old folder is left as a backup.
 - **Unreadable chests are never saved** (`ItemStackSerializer` throws, `EnderChestSnapshot.loadFailed`). Never turn
   a read failure into an empty chest again; that wiped player chests on the live server.
+- **Items are read and written with the server's own codec** (`ItemStack.deserializeBytes` / `serializeAsBytes`, container
+  handled by `utils/RawNbt`). The bundled NBT-API is only the fallback: it does not know new Minecraft versions and on
+  Paper 26.3 build 151 it failed with `ITEMSTACK_BUKKITMIRROR`, which left every chest unreadable (and locked).
 - **Permission nodes stay `enderchest.*`** — the live server's LuckPerms groups use them.
 - Config changes go through `data/ConfigUpdater` (`config-version`), so owner values are kept.
 
 ## Test
 
-`mvn test` covers the SQL safety, the migration and sound parsing. Behaviour on a real server was checked on a local
+`mvn test` covers the SQL safety, the item container (`RawNbt`) and sound parsing. Behaviour on a real server was checked on a local
 Paper 26.2 server with a probe plugin that loads every stored chest through the API.
