@@ -12,7 +12,7 @@ public class ConfigUpdater {
 
     private OberonEnder plugin;
 
-    private final int latest = 8;
+    private final int latest = 9;
 
     private int current;
 
@@ -149,6 +149,22 @@ public class ConfigUpdater {
                         "'block' is used for the ender chest block, 'command' for /enderchest (and its aliases).",
                         "sound: a Sound name (BLOCK_ENDER_CHEST_OPEN) or a resource key (block.ender_chest.open), resource pack sounds work too.",
                         "Set enabled to false to play no sound."));
+            }
+
+            this.current++;
+
+            this.plugin.saveConfig();
+        }
+
+        //from 8 -> 9: vanished players open the block silently
+        if (this.current == 8) {
+            this.plugin.getConfig().set("config-version", 9);
+            this.plugin.getConfig().set("vanish.silent-open", true);
+
+            if (MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_18_R1)) {
+                this.plugin.getConfig().setComments("vanish", Arrays.asList(
+                        "Players in vanish (PremiumVanish, SuperVanish, EssentialsX, CMI...) open the ender chest block silently:",
+                        "nobody around sees the lid move or hears it. The vanished player still hears the sounds above."));
             }
 
             this.current++;

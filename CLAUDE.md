@@ -26,5 +26,6 @@ JAVA_HOME=/opt/homebrew/opt/openjdk@21 mvn -f pom.local.xml clean package   # ->
 
 ## Test
 
-`mvn test` covers the SQL safety, the item container (`RawNbt`) and sound parsing. Behaviour on a real server was checked on a local
+`mvn test` covers the SQL safety, the item container (`RawNbt`), sound parsing, the lid counter (`LidTracker`) and the
+vanish check. Behaviour on a real server was checked on a local
 Paper 26.2 server with a probe plugin that loads every stored chest through the API.

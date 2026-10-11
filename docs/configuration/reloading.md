@@ -16,4 +16,4 @@ If the new config is broken, nothing is applied and the command reports `OberonE
 - `open-enderchest-commands`
 - `papi-identifier`
 
-Everything else — rows, blacklist, disabled worlds, sounds, messages — applies on reload.
+Everything else — rows, blacklist, disabled worlds, sounds, vanish, messages — applies on reload.

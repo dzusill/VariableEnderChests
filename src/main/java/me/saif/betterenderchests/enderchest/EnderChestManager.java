@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
 import me.saif.betterenderchests.OberonEnder;
 import me.saif.betterenderchests.data.DataManager;
+import me.saif.betterenderchests.hooks.VanishHook;
 import me.saif.betterenderchests.lang.MessageKey;
 import me.saif.betterenderchests.utils.Callback;
 import me.saif.betterenderchests.utils.CaselessString;
@@ -47,6 +48,10 @@ public class EnderChestManager extends Manager<OberonEnder> implements Listener 
     private final Set<EnderChestSnapshot> snapshotsToSave = Sets.newConcurrentHashSet();
 
     private final Map<UUID, Block> openFromBlocks = new HashMap<>();
+    //who is looking into each block, the lid closes after the last of them
+    private final LidTracker<Block> lids = new LidTracker<>();
+    //staff in vanish open the block without moving the lid
+    private volatile boolean silentWhenVanished;
     private volatile int defaultRows;
     private volatile boolean convert;
 
@@ -209,15 +214,17 @@ public class EnderChestManager extends Manager<OberonEnder> implements Listener 
                 //opened from the block, so it is no longer a command viewer
                 this.openFromCommand.remove(player.getUniqueId());
 
-                if (MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_19_R1)) {
-                    org.bukkit.block.EnderChest chestBlock = ((org.bukkit.block.EnderChest) event.getClickedBlock().getState());
-                    chestBlock.open();
-                    chestBlock.update();
-                }
-
-                this.blockOpenSound.play(event.getPlayer(), event.getClickedBlock().getLocation());
+                Block block = event.getClickedBlock();
+                this.blockOpenSound.play(event.getPlayer(), block.getLocation());
                 this.openEnderChest(enderChest, player, rows);
-                this.openFromBlocks.put(player.getUniqueId(), event.getClickedBlock());
+                this.openFromBlocks.put(player.getUniqueId(), block);
+
+                //the lid would show everyone around that a vanished staff member is there
+                if (this.silentWhenVanished && VanishHook.isVanished(player))
+                    return;
+
+                if (this.lids.open(block, player.getUniqueId()))
+                    setLid(block, true);
             }
         }
     }
@@ -227,14 +234,7 @@ public class EnderChestManager extends Manager<OberonEnder> implements Listener 
         if (this.openFromBlocks.containsKey(event.getPlayer().getUniqueId())) {
             event.getViewers().remove(event.getPlayer());
 
-            Block block = this.openFromBlocks.remove(event.getPlayer().getUniqueId());
-
-
-            if (MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_19_R1) && block.getState() instanceof org.bukkit.block.EnderChest && event.getViewers().isEmpty()) {
-                org.bukkit.block.EnderChest chestBlock = ((org.bukkit.block.EnderChest) block.getState());
-                chestBlock.close();
-                chestBlock.update();
-            }
+            Block block = this.leaveBlock(event.getPlayer().getUniqueId());
             this.blockCloseSound.play((Player) event.getPlayer(), block.getLocation());
         } else if (this.openFromCommand.remove(event.getPlayer().getUniqueId())
                 && event.getInventory().getHolder() instanceof EnderChest) {
@@ -245,7 +245,7 @@ public class EnderChestManager extends Manager<OberonEnder> implements Listener 
 
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
-        this.openFromBlocks.remove(event.getPlayer().getUniqueId());
+        this.leaveBlock(event.getPlayer().getUniqueId());
         this.openFromCommand.remove(event.getPlayer().getUniqueId());
 
         EnderChest enderChest = getEnderChest(event.getPlayer());
@@ -276,6 +276,26 @@ public class EnderChestManager extends Manager<OberonEnder> implements Listener 
         //we will deal with this later when clearing cache periodically.
     }
 
+    //the player no longer looks into the block they opened; closes the lid when they were the last one
+    private Block leaveBlock(UUID uuid) {
+        Block block = this.openFromBlocks.remove(uuid);
+        if (block != null && this.lids.close(block, uuid))
+            setLid(block, false);
+        return block;
+    }
+
+    //moves the lid of the block, which also plays the vanilla sound to everyone around it
+    private void setLid(Block block, boolean open) {
+        if (!MinecraftVersion.isAtLeastVersion(MinecraftVersion.MC1_19_R1) || !(block.getState() instanceof org.bukkit.block.EnderChest chestBlock))
+            return;
+
+        if (open)
+            chestBlock.open();
+        else
+            chestBlock.close();
+        chestBlock.update();
+    }
+
     /**
      * Reads the sounds, default rows, blacklist and converter switch from the plugin config. Runs at startup and
      * on /oberonender reload; it never touches stored ender chests.
@@ -303,6 +323,7 @@ public class EnderChestManager extends Manager<OberonEnder> implements Listener 
         this.commandCloseSound = SoundSetting.load(config.getConfigurationSection("sounds.command.close"), defaultClose, "sounds.command.close", logger);
 
         //getting config values
+        this.silentWhenVanished = this.getPlugin().getConfig().getBoolean("vanish.silent-open", true);
         this.convert = this.getPlugin().getConfig().getBoolean("convert-current-ender-chest", true);
         this.defaultRows = this.getPlugin().getConfig().getInt("default-rows", 3);
         if (this.defaultRows > 6)
@@ -363,7 +384,7 @@ public class EnderChestManager extends Manager<OberonEnder> implements Listener 
         if (!this.open(chest, player))
             return;
 
-        this.openFromBlocks.remove(player.getUniqueId());
+        this.leaveBlock(player.getUniqueId());
         this.openFromCommand.add(player.getUniqueId());
         this.commandOpenSound.play(player, player.getLocation());
     }

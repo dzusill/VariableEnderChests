@@ -21,4 +21,8 @@ sounds:
 - `enabled: false` plays nothing.
 - `volume` and `pitch` are plain numbers.
 
+## The block's lid
+
+When the chest is opened from the block, its lid opens for everyone around (1.19+). It stays open while **anyone** is still looking into that chest and closes after the last of them — one player closing their chest no longer shuts the lid on the others. A player in vanish does not move the lid at all (see `vanish.silent-open` in [config.yml](../configuration/config.md)).
+
 Apply changes with [`/oberonender reload`](../configuration/reloading.md).

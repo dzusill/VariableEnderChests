@@ -3,7 +3,7 @@
 Lives in `plugins/OberonEnder/config.yml`. New keys are added automatically on update; your values are never overwritten.
 
 ```yaml
-config-version: 8   # managed by the plugin, do not edit
+config-version: 9   # managed by the plugin, do not edit
 ```
 
 ## Database
@@ -65,3 +65,12 @@ blacklisted-items:
 ## Sounds
 
 `sounds.block.*` and `sounds.command.*` — see [Sounds](../features/sounds.md).
+
+## Vanish
+
+```yaml
+vanish:
+  silent-open: true
+```
+
+`silent-open: true` — a player in vanish opens the ender chest **block** without moving its lid, so nobody around sees or hears it. The vanished player still hears their own sound from `sounds.block.*`. Set it to `false` to treat vanished players like everyone else. See [Integrations](../integrations.md).

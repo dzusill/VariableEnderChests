@@ -1,5 +1,5 @@
 #Do not change this manually, this is to keep track of config changes.
-config-version: 8
+config-version: 9
 
 #If mysql is set to false, database defaults to a data.db file
 #Do not set mysql to true unless you have a mysql database set up
@@ -75,3 +75,8 @@ sounds:
       sound: 'BLOCK_ENDER_CHEST_CLOSE'
       volume: 1.0
       pitch: 1.0
+
+#Players in vanish (PremiumVanish, SuperVanish, EssentialsX, CMI...) open the ender chest block silently:
+#nobody around sees the lid move or hears it. The vanished player still hears the sounds above.
+vanish:
+  silent-open: true

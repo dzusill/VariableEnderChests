@@ -12,6 +12,7 @@ It is the Oberon build of [VariableEnderChests](https://github.com/minion325/Var
 - 🔒 **Never wipes a chest** — if stored items cannot be read, the chest is locked and never saved over. See [Safe Storage](features/safe-storage.md).
 - 🎒 **Retrieval inventory** — items above a player's current row count are not lost when their rank drops; `/retrieveender` brings them back.
 - 🔊 **Configurable sounds** — separate open/close sounds for the chest block and for the command, resource-pack sounds included.
+- 👻 **Vanish support** — staff in PremiumVanish, SuperVanish, EssentialsX or CMI vanish open the chest block without moving its lid. See [Integrations](integrations.md).
 - 🚫 **World and item rules** — disable the plugin per world, blacklist materials.
 - 🔄 **Converters** — import from vanilla, EnderPlus, AdvancedEnderchest and more. See [Converters](features/converters.md).
 - 🌍 **Translations** — English, Spanish, Hungarian and Simplified Chinese lang files.
